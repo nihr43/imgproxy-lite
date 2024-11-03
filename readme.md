@@ -1,6 +1,6 @@
 # imgproxy-lite
 
-A quick a dirty realtime image converter for use in kubernetes.
+A quick and dirty realtime image converter for use in kubernetes.
 
 I use hugo for my blog.  I like to dump the images for this blog onto ceph object storage to keep them out of the hugo pods.  This proxy allows me to do so care-free with regard to file size; as images can now be referenced from hugo like so:
 
