@@ -65,8 +65,17 @@ def convert():
             elapsed = time.time() - start
             print(f"converting took {elapsed}")
 
-            with open(f"artifacts/{cache_key}", "wb") as f:
-                f.write(membuf.getvalue())
+            try:
+                with open(f"artifacts/{cache_key}", "wb") as f:
+                    f.write(membuf.getvalue())
+            except (OSError, IOError) as e:
+                print(f"error writing cache object: {e}")
+                # in out-of-space scenarios, it appears the empty file is still created,
+                # which then causes subequent 'hits' on the empty file:
+                try:
+                    os.remove(f"artifacts/{cache_key}")
+                except FileNotFoundError:
+                    pass
 
             membuf.seek(0)
             return send_file(membuf, mimetype="image/jpeg")
