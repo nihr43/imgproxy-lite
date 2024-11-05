@@ -39,7 +39,7 @@ def convert():
         print("cache hit")
         image_stream.seek(0)
         return send_file(image_stream, mimetype="image/jpeg")
-    except FileNotFoundError:
+    except (FileNotFoundError, IOError, OSError, EOFError):
         print("cache miss")
         prune_cache("artifacts")
         try:
