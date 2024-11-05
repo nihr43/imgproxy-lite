@@ -3,12 +3,28 @@ from PIL import Image
 import requests
 import time
 import uuid
+import os
 from io import BytesIO
 
 app = Flask(__name__)
 
 
-# wget http://127.0.0.1:5000/?img=main.jpg&q=33
+def prune_cache(directory, limit=100):
+    files_with_dates = [
+        (f, os.path.getctime(os.path.join(directory, f)))
+        for f in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, f))
+    ]
+
+    files_with_dates.sort(key=lambda x: x[1], reverse=True)
+    recent_files = files_with_dates[:limit]
+    recent_filenames = {f[0] for f in recent_files}
+
+    for filename, _ in files_with_dates[limit:]:
+        if filename not in recent_filenames:
+            file_path = os.path.join(directory, filename)
+            os.remove(file_path)
+            print(f"{file_path} pruned")
 
 
 @app.route("/")
@@ -17,7 +33,7 @@ def convert():
     cache_key = str(uuid.uuid5(uuid.NAMESPACE_OID, request.url))
 
     try:
-        with open(cache_key, "rb") as f:
+        with open(f"artifacts/{cache_key}", "rb") as f:
             image_stream = BytesIO(f.read())
 
         print("cache hit")
@@ -25,6 +41,7 @@ def convert():
         return send_file(image_stream, mimetype="image/jpeg")
     except FileNotFoundError:
         print("cache miss")
+        prune_cache("artifacts")
         try:
             response = requests.get(image_url)
             response.raise_for_status()
@@ -45,10 +62,19 @@ def convert():
             elapsed = time.time() - start
             print(f"converting took {elapsed}")
 
-            with open(cache_key, "wb") as f:
+            with open(f"artifacts/{cache_key}", "wb") as f:
                 f.write(membuf.getvalue())
 
             membuf.seek(0)
             return send_file(membuf, mimetype="image/jpeg")
         except TypeError:
             return send_file(image_stream, mimetype="image/jpeg")
+
+
+def main():
+    os.makedirs("artifacts", exist_ok=True)
+    app.run(debug=False)
+
+
+if __name__ == "__main__":
+    main()

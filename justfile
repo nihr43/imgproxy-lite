@@ -4,7 +4,7 @@ build: lint
   kubectl rollout restart deployments/imgproxy-lite
 
 run: lint
-  nix-shell . --run 'flask run'
+  nix-shell . --run 'python3 app.py'
 
 lint:
   black .

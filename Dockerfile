@@ -6,4 +6,4 @@ run pip install flask pillow requests --break-system-packages
 workdir /opt
 copy app.py .
 
-cmd ["flask", "run", "-h", "0.0.0.0"]
+cmd ["python3", "app.py"]
