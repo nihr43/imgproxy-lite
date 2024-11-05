@@ -23,8 +23,11 @@ def prune_cache(directory, limit=100):
     for filename, _ in files_with_dates[limit:]:
         if filename not in recent_filenames:
             file_path = os.path.join(directory, filename)
-            os.remove(file_path)
-            print(f"{file_path} pruned")
+            try:
+                os.remove(file_path)
+                print(f"{file_path} pruned")
+            except (FileNotFoundError, OSError) as e:
+                print(f"{file_path} pruning failed: {e}")
 
 
 @app.route("/")
