@@ -73,7 +73,7 @@ def convert():
 
 def main():
     os.makedirs("artifacts", exist_ok=True)
-    app.run(debug=False)
+    app.run(debug=False, host="0.0.0.0")
 
 
 if __name__ == "__main__":
