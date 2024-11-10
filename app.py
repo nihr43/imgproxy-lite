@@ -36,13 +36,9 @@ def convert():
     cache_key = str(uuid.uuid5(uuid.NAMESPACE_OID, request.url))
 
     try:
-        with open(f"artifacts/{cache_key}", "rb") as f:
-            image_stream = BytesIO(f.read())
-
-        print("cache hit")
         os.utime(f"artifacts/{cache_key}", None)
-        image_stream.seek(0)
-        return send_file(image_stream, mimetype="image/jpeg")
+        print("cache hit")
+        return send_file(f"artifacts/{cache_key}", mimetype="image/jpeg")
     except (FileNotFoundError, IOError, OSError, EOFError):
         print("cache miss")
         prune_cache("artifacts")
