@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 def prune_cache(directory, limit=100):
     files_with_dates = [
-        (f, os.path.getctime(os.path.join(directory, f)))
+        (f, os.path.getatime(os.path.join(directory, f)))
         for f in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, f))
     ]
@@ -40,6 +40,7 @@ def convert():
             image_stream = BytesIO(f.read())
 
         print("cache hit")
+        os.utime(f"artifacts/{cache_key}", None)
         image_stream.seek(0)
         return send_file(image_stream, mimetype="image/jpeg")
     except (FileNotFoundError, IOError, OSError, EOFError):
