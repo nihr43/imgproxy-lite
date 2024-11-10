@@ -14,43 +14,11 @@ For now this service is hard-coded to go look for the source images on a ceph RG
 
 Are we adding a point of failure vs pre-processing and storing a handful of 'presets'?  Yes, but running this as a replicated deployment, with a CluserIP and Ingress, on the same cluster as the ceph RGW pods and Service; I consider this very low risk and easily worth the ease and flexibility of content organization going forward.
 
-Heres a terraform deployment:
+Heres a terraform deployment with objects cached on ceph:
 
 ```
-resource "kubernetes_ingress_v1" "imgproxy-lite" {
-  metadata {
-    name = "imgproxy-lite"
-    annotations = {
-      "kubernetes.io/ingress.class"    = "nginx"
-      "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
-    }
-  }
-  spec {
-    rule {
-      host = "images.nih.earth"
-      http {
-        path {
-          backend {
-            service {
-              name = "imgproxy-lite"
-              port {
-                number = 5000
-              }
-            }
-          }
-          path      = "/"
-          path_type = "Prefix"
-        }
-      }
-    }
-    tls {
-      hosts       = ["images.nih.earth"]
-      secret_name = "imgproxy-lite-tls"
-    }
-  }
-}
-
 resource "kubernetes_service" "imgproxy-lite" {
+  depends_on = [kubernetes_deployment.imgproxy-lite]
   metadata {
     name = "imgproxy-lite"
   }
@@ -67,11 +35,12 @@ resource "kubernetes_service" "imgproxy-lite" {
 }
 
 resource "kubernetes_deployment" "imgproxy-lite" {
+  depends_on = [kubernetes_persistent_volume_claim.imgproxy-lite]
   metadata {
     name = "imgproxy-lite"
   }
   spec {
-    replicas = 5
+    replicas = 2
     selector {
       match_labels = {
         app = "imgproxy-lite"
@@ -87,9 +56,38 @@ resource "kubernetes_deployment" "imgproxy-lite" {
         container {
           image = "images.local:5000/imgproxy-lite"
           name  = "imgproxy-lite"
+          env {
+            name  = "PYTHONUNBUFFERED"
+            value = "1"
+          }
+          volume_mount {
+            mount_path = "/opt/artifacts"
+            name       = "scratch"
+          }
+        }
+        volume {
+          name = "scratch"
+          persistent_volume_claim {
+            claim_name = "imgproxy-lite"
+          }
         }
       }
     }
   }
 }
+
+resource "kubernetes_persistent_volume_claim" "imgproxy-lite" {
+  metadata {
+    name = "imgproxy-lite"
+  }
+  spec {
+    access_modes = ["ReadWriteMany"]
+    resources {
+      requests = {
+        storage = "1Gi"
+      }
+    }
+    storage_class_name = "ceph-filesystem"
+  }
+
 ```
