@@ -1,14 +1,19 @@
-{ nixpkgs ? import <nixpkgs> {  } }:
+{ pkgs ? import <nixpkgs> { } }:
 
 let
-  pkgs = with nixpkgs.python312Packages; [
+  pythonEnv = pkgs.python312.withPackages (ps: with ps; [
     flask
     requests
     pillow
-  ];
-
+  ]);
 in
-  nixpkgs.stdenv.mkDerivation {
-    name = "env";
-    buildInputs = pkgs;
-  }
+
+if builtins.getEnv "BUILD" == "1"
+then pythonEnv
+else pkgs.mkShell {
+  name = "python-dev-env";
+  buildInputs = [
+    pkgs.python312
+    pythonEnv
+  ];
+}

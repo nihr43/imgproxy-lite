@@ -1,7 +1,9 @@
-from alpine:3.20
+from nixos/nix
+arg BUILD=1
 
-run apk add py3-pip
-run pip install flask pillow requests --break-system-packages
+copy default.nix .
+run nix-channel --add https://nixos.org/channels/nixos-24.05 nixpkgs
+run nix-env -if default.nix
 
 workdir /opt
 copy app.py .
