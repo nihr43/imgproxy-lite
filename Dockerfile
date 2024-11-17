@@ -8,4 +8,4 @@ run nix-env -if default.nix
 workdir /opt
 copy app.py .
 
-cmd ["python3", "app.py"]
+cmd ["python3", "app.py", "--serve"]

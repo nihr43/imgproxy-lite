@@ -4,9 +4,17 @@ import requests
 import time
 import uuid
 import os
+import argparse
 from io import BytesIO
 
 app = Flask(__name__)
+
+
+def gc():
+    while True:
+        print("running garbage collection")
+        prune_cache("artifacts")
+        time.sleep(600)
 
 
 def prune_cache(directory, limit=100):
@@ -41,7 +49,6 @@ def convert():
         return send_file(f"artifacts/{cache_key}", mimetype="image/jpeg")
     except (FileNotFoundError, IOError, OSError, EOFError):
         print("cache miss")
-        prune_cache("artifacts")
         try:
             response = requests.get(image_url)
             response.raise_for_status()
@@ -82,7 +89,18 @@ def convert():
 
 def main():
     os.makedirs("artifacts", exist_ok=True)
-    app.run(debug=False, host="0.0.0.0")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--serve", action="store_true")
+    parser.add_argument("--gc", action="store_true")
+    args = parser.parse_args()
+
+    if args.serve:
+        app.run(debug=False, host="0.0.0.0")
+    elif args.gc:
+        gc()
+    else:
+        raise ValueError
 
 
 if __name__ == "__main__":
