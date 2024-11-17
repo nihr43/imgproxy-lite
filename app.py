@@ -1,11 +1,13 @@
 from flask import Flask, request, send_file
 from PIL import Image
+from io import BytesIO
 import requests
 import time
 import uuid
 import os
 import argparse
-from io import BytesIO
+import waitress
+
 
 app = Flask(__name__)
 
@@ -95,7 +97,7 @@ def main():
     args = parser.parse_args()
 
     if args.serve:
-        app.run(debug=False, host="0.0.0.0")
+        waitress.serve(app, host="0.0.0.0", port=5000, threads=2)
     elif args.gc:
         gc()
     else:
