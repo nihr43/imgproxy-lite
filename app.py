@@ -12,7 +12,6 @@ app = Flask(__name__)
 
 def gc():
     while True:
-        print("running garbage collection")
         prune_cache("artifacts")
         time.sleep(600)
 
