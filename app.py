@@ -15,7 +15,7 @@ app = Flask(__name__)
 def gc():
     while True:
         prune_cache("artifacts")
-        time.sleep(600)
+        time.sleep(3600)
 
 
 def prune_cache(directory, limit=100):
