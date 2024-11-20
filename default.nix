@@ -14,7 +14,6 @@ then pythonEnv
 else pkgs.mkShell {
   name = "python-dev-env";
   buildInputs = [
-    pkgs.python312
     pythonEnv
   ];
 }
