@@ -5,6 +5,7 @@ let
     flask
     requests
     pillow
+    waitress
   ]);
 in
 
