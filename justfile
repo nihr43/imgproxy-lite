@@ -1,14 +1,13 @@
 build: lint
-  buildah build --tag imgproxy-lite .
-  buildah push imgproxy-lite docker://images.local:5000/imgproxy-lite:latest
+  docker load < $(BUILD=1 nix build -f default.nix --no-link --print-out-paths)
+  docker push images.local:5000/imgproxy-lite
   kubectl rollout restart deployments/imgproxy-lite
-  kubectl rollout restart deployments/imgproxy-lite-gc
 
 run: lint
-  nix-shell . --run 'python3 app.py --serve'
+  nix-shell --run 'python3 app.py --serve'
 
 gc: lint
-  nix-shell . --run 'python3 app.py --gc'
+  nix-shell --run 'python3 app.py --gc'
 
 lint:
   black .
